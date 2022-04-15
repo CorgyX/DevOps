@@ -1,2 +1,1 @@
-# DevOps
-test v1.00
+Automating AWS with Terraform
