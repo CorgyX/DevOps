@@ -66,8 +66,12 @@ resource "aws_internet_gateway" "main" {
 
 resource "aws_eip" "nat" {
   count = 2
-
   vpc = true
+  
+  tags = {
+    Name = "nat${aws_eip}"
+  }
+  
 }
 
 resource "aws_nat_gateway" "main" {
