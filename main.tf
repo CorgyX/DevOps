@@ -12,14 +12,7 @@ provider "aws" {
 }
 
 resource "aws_vpc" "main" {
-  variable "vpc_cidr_block" {
-  description = "CIDR block for VPC"
-  type        = string
-  default     = "10.0.0.0/16"
-}
-
-tags = {
-  Name = "${aws_vpc.main}-aws_vpc.main.id"
+  cidr_block = "10.0.0.0/16"
 }
 
 locals {
