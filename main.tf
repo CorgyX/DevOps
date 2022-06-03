@@ -13,10 +13,10 @@ provider "aws" {
 
 resource "aws_vpc" "main" {
   cidr_block = var.aws_vpc_main_cidr_block
+  
   tags = {
-    Name = "${var.aws_vpc_main_cidr_block}-vpc"
+    Name = "${var.env_code}"
   }
-
 }
 
 locals {
