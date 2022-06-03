@@ -8,11 +8,15 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = var.aws_region
 }
 
 resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = var.aws_vpc_main_cidr_block
+  tags = {
+    Name = "${var.aws_vpc_main_cidr_block}-vpc"
+  }
+
 }
 
 locals {
@@ -27,7 +31,7 @@ resource "aws_subnet" "public" {
   cidr_block = local.public_cidr[count.index]
 
   tags = {
-    Name = "public${count.index}"
+    Name = "${var.aws_subnet_public_cidr_block}-vpc"
   }
 }
 
@@ -39,7 +43,7 @@ resource "aws_subnet" "private" {
   cidr_block = local.private_cidr[count.index]
 
   tags = {
-    Name = "private${count.index}"
+    Name = "${var.aws_subnet_private_cidr_block}-vpc"
   }
 }
 
@@ -47,7 +51,7 @@ resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "main"
+    Name = "${var.aws_internet_gateway_main}-vpc"
   }
 }
 
@@ -55,6 +59,11 @@ resource "aws_eip" "nat" {
   count = 2
 
   vpc = true
+
+  tags = {
+    Name = "${var.aws_internet_gateway_main}-vpc"
+  }
+
 }
 
 resource "aws_nat_gateway" "main" {
@@ -64,7 +73,7 @@ resource "aws_nat_gateway" "main" {
   subnet_id     = aws_subnet.public[count.index].id
 
   tags = {
-    Name = "main"
+    Name = "${var.aws_eip_nat}-vpc"
   }
 }
 
@@ -78,7 +87,7 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
-    Name = "public"
+    Name = "${var.aws_route_table_public}-vpc"
   }
 }
 
@@ -93,7 +102,7 @@ resource "aws_route_table" "private" {
   }
 
   tags = {
-    Name = "private${count.index}"
+    Name = "${var.aws_route_table_private}-vpc"
   }
 }
 
@@ -102,6 +111,10 @@ resource "aws_route_table_association" "public" {
 
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
+
+  # tags = {
+  #   Name = "${var.aws_route_table_association_public}-vpc"
+  # }
 }
 
 resource "aws_route_table_association" "private" {
