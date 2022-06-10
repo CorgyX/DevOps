@@ -1,4 +1,7 @@
-variable "env_code" 
+variable "env_code"     {
+
+  
+}
 
 
 variable "aws_region" {
