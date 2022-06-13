@@ -8,11 +8,15 @@ terraform {
 }
 
 provider "aws" {
-  region = "us-east-1"
+  region = var.aws_region
 }
 
 resource "aws_vpc" "main" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = var.aws_vpc_main_cidr_block
+  
+  tags = {
+    Name = "${var.env_code}"
+  }
 }
 
 locals {
@@ -21,25 +25,25 @@ locals {
 }
 
 resource "aws_subnet" "public" {
-  count = 2
+  count = length(local.public_cidr)
 
   vpc_id     = aws_vpc.main.id
   cidr_block = local.public_cidr[count.index]
 
   tags = {
-    Name = "public${count.index}"
+    Name = "${var.env_code}-public${count.index}"
   }
 }
 
 
 resource "aws_subnet" "private" {
-  count = 2
+  count = length(local.private_cidr)
 
   vpc_id     = aws_vpc.main.id
   cidr_block = local.private_cidr[count.index]
 
   tags = {
-    Name = "private${count.index}"
+    Name = "${var.env_code}-private${count.index}"
   }
 }
 
@@ -47,24 +51,28 @@ resource "aws_internet_gateway" "main" {
   vpc_id = aws_vpc.main.id
 
   tags = {
-    Name = "main"
+    Name = var.env_code
   }
 }
 
 resource "aws_eip" "nat" {
-  count = 2
+  count = length(local.public_cidr)
 
   vpc = true
+
+  tags = {
+     Name = var.env_code
+  }
 }
 
 resource "aws_nat_gateway" "main" {
-  count = 2
+  count = length(local.public_cidr)
 
   allocation_id = aws_eip.nat[count.index].id
   subnet_id     = aws_subnet.public[count.index].id
 
   tags = {
-    Name = "main"
+    Name = "${var.env_code}${count.index}"
   }
 }
 
@@ -78,12 +86,12 @@ resource "aws_route_table" "public" {
   }
 
   tags = {
-    Name = "public"
+    Name = "${var.env_code}-public"
   }
 }
 
 resource "aws_route_table" "private" {
-  count = 2
+  count = length(local.private_cidr)
 
   vpc_id = aws_vpc.main.id
 
@@ -93,20 +101,22 @@ resource "aws_route_table" "private" {
   }
 
   tags = {
-    Name = "private${count.index}"
+    Name = "${var.env_code}-private${count.index}"
   }
 }
 
 resource "aws_route_table_association" "public" {
-  count = 2
+  count = length(local.public_cidr)
 
   subnet_id      = aws_subnet.public[count.index].id
   route_table_id = aws_route_table.public.id
+
 }
 
 resource "aws_route_table_association" "private" {
-  count = 2
+  count = length(local.private_cidr)
 
   subnet_id      = aws_subnet.private[count.index].id
   route_table_id = aws_route_table.private[count.index].id
 }
+
