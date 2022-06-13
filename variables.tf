@@ -1,5 +1,5 @@
 variable "env_code" {
-  type = string
+  type        = string
   description = "Initial form of environment resources "
 }
 
